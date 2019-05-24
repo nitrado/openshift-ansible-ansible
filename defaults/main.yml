@@ -37,3 +37,12 @@ openshift_is_ansible_host: yes
 # If you deploy multiple masters, only mark the first one
 # (or commands will be ran multiple times).
 openshift_is_master_host: yes
+
+# This setting removes all other authorized_keys
+# from the nodes. Be careful when using this.
+# This setting only works with defined "openshift_ssh_public_keys".
+openshift_ssh_exclusive: no
+
+# Providing a static set of public_keys.
+# This disables the auto key detection.
+openshift_ssh_public_keys: []

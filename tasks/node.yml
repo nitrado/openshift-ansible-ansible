@@ -1,9 +1,17 @@
 ---
 
-- name: SSH keys
+- name: Deploy SSH keys to nodes (auto key detection)
   authorized_key:
     key: "{{ hostvars[item]['public_key'] }}"
     user: root
     key_options: from="{{ hostvars[item]['ansible_default_ipv4']['address'] }}"
   loop: "{{ groups['openshift_ansible_hosts'] }}"
-  when: "'openshift_ansible_hosts' in groups and item != inventory_hostname"
+  when: "'openshift_ansible_hosts' in groups and item != inventory_hostname and openshift_ssh_public_keys|length == 0"
+
+- name: Deploy SSH keys to nodes (manual)
+  authorized_key:
+    key: "{{ openshift_ssh_public_keys|join('\n') }}"
+    user: root
+    exclusive: "{{ openshift_ssh_exclusive }}"
+    key_options: 'from="{{ openshift_ssh_from }}"'
+  when: "openshift_ssh_public_keys|length > 0"

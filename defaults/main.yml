@@ -5,6 +5,13 @@ openshift_version: "3.11"
 # OpenShift-Ansible inventory
 openshift_ansible_inventory: {}
 
+# OpenShift htaccess
+openshift_htpasswd: []
+# Example Usage:
+#openshift_htpasswd:
+#  - username: account@example.com
+#    password: $password/
+
 # List of groups to create
 openshift_groups:
   admin-users:

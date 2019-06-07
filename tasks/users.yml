@@ -28,3 +28,4 @@
   template:
     src: htpasswd.j2
     dest: "/etc/origin/master/htpasswd"
+  when: openshift_htpasswd|length > 0

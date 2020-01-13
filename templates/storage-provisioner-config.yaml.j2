@@ -1,0 +1,15 @@
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: local-volume-config
+data:
+  storageClassMap: |
+    local-storage:
+       hostDir: {{ openshift_localstorage_basedir }}
+       mountDir: {{ openshift_localstorage_basedir }}
+       volumeMode: Filesystem
+       blockCleanerCommand:
+         - "/scripts/shred.sh"
+         - "2"

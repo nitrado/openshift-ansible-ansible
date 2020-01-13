@@ -10,3 +10,58 @@
 
 - name: Apply local-storage storage class
   shell: oc apply -f "{{ openshift_ansible_tmp }}/storage-class.yaml"
+
+# Storage provisioner for local volumes
+# Needed to cleanup old volumes
+
+- name: Create local storage project
+  shell: oc new-project local-storage
+  failed_when: no
+
+- name: Switch to local-storage project
+  shell: oc project local-storage
+
+- name: Template local-storage storage class
+  template:
+    src: storage-provisioner.yaml.j2
+    dest: "{{ openshift_ansible_tmp }}/local-storage-provisioner.yaml"
+
+- name: Apply local-storage-provisioner template
+  shell: oc apply -f "{{ openshift_ansible_tmp }}/local-storage-provisioner.yaml"
+
+- name: Detect if serviceaccount existing
+  shell: oc get serviceaccount local-storage-admin
+  register: serviceaccount_check
+  failed_when: no
+
+- name: Create service account for local-storage-admin
+  shell: oc create serviceaccount local-storage-admin
+  when: serviceaccount_check.rc != 0
+
+- name: Allow container for local storage run as root
+  shell: oc adm policy add-scc-to-user privileged -z local-storage-admin
+
+- name: Template local-storage config map
+  template:
+    src: storage-provisioner-config.yaml.j2
+    dest: "{{ openshift_ansible_tmp }}/storage-provisioner-config.yaml"
+
+- name: Apply local-storage-provisioner config
+  shell: oc apply -f "{{ openshift_ansible_tmp }}/storage-provisioner-config.yaml"
+
+- name: Check if local provisioner app is already deployd
+  shell: oc get pods -l "app=local-volume-provisioner" | wc -l
+  register: localprovisioner_check
+
+- name: Start local provisioner
+  shell: >
+    oc new-app -p CONFIGMAP=local-volume-config \
+      -l app=local-volume-provisioner \
+      -p SERVICE_ACCOUNT=local-storage-admin \
+      -p NAMESPACE=local-storage \
+      -p PROVISIONER_IMAGE=quay.io/external_storage/local-volume-provisioner:v2.3.3 \
+      local-storage-provisioner
+  when: localprovisioner_check.stdout == "0"
+
+- name: Switch to default project
+  shell: oc project default

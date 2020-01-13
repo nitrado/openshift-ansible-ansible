@@ -1,8 +1,5 @@
 ---
 
-- include_tasks: localstorage-master-pv.yml
-  loop: "{{ openshift_localstorage_hosts }}"
-
 - name: Template local-storage storage class
   template:
     src: storage-class.yaml.j2

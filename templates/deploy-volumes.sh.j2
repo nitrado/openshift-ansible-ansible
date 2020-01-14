@@ -1,0 +1,23 @@
+#!/bin/bash
+
+STORAGE="{{ openshift_localstorage_basedir }}"
+VOLUMES=`echo -n {0..{{ openshift_localstorage_num_volumes }}}`
+MOUNTS=`mount -l`
+
+for id in $VOLUMES
+do
+  volumePath="$STORAGE/vol$id"
+  echo "Checking volume $volumePath"
+  if [[ ! -d $volumePath ]]
+  then
+     echo "Creating volumes $volumePath"
+     install -d -o 1001 -g 0 -m 0770 $volumePath
+  fi
+
+  if [[ -z `echo $MOUNTS | grep $volumePath` ]]
+  then
+    echo "$volumePath is missing the bind mount"
+    mount --bind $volumePath $volumePath
+  fi
+done
+
